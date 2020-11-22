@@ -1,0 +1,194 @@
+body {
+    margin: 0px;
+}
+
+/* LOGIN */
+
+.loginWrapper {
+    margin: 0px;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.loginWrapper .appName {
+    margin-top: 100px;
+}
+
+.loginWrapper .loginForm {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    min-width: 200px;
+    transform: translate(-50%, -50%);
+    padding: 20px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.loginWrapper .ghImageContainer {
+    width: 100px;
+    height: 100px;
+    border: 5px solid #333;
+    box-shadow: 0 6px 30px #0004;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.loginWrapper img.ghLogin {
+    width: 100px;
+}
+
+.loginWrapper .cta {
+    text-align: center;
+    font-size: 20px;
+}
+
+
+/* MENU */
+
+.menuWrapper {
+    min-width: 320px;
+    max-width: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.menuWrapper .btn {
+    width: 150px;
+    height: 100px;
+    margin: 20px;
+    border: 2px solid black;
+    border-radius: 20px;
+    box-shadow: 0 6px 30px #0004;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+
+/* Group selection */
+
+.usernamesWrapper {
+    margin: 50px auto;
+    max-width: 500px;
+    min-height: calc(100vh - 100px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.usernamesWrapper button {
+    height: 30px;
+    margin-top: 50px;
+    cursor: pointer;
+}
+
+input.username {
+    border-radius: 10px;
+    outline: none;
+    border: 1px solid #0004;
+    padding: 0 10px;
+    height: 30px;
+    min-width: 148px;
+}
+
+.usernameWrapper {
+    width: 167px;
+    display: flex;
+    align-items: center;
+}
+
+.usernameWrapper * {
+    margin: 2px;
+}
+
+.usernameWrapper .icon {
+    font-size: 20px;
+    margin: 10px;
+    cursor: pointer;
+}
+.usernameWrapper .icon.cancel {
+    color: red;
+}
+.usernameWrapper .icon.save {
+    color: green;
+}
+
+.usernameWrapper input.error {
+    background-color: #f004;
+}
+
+.usernameValueWrapper {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.usernameValueWrapper p {
+    min-width: 100px;
+    text-align: center;
+    margin-right: 20px;
+    font-size: 20px;
+}
+
+.usernameValueWrapper .usernameValue:hover {
+    text-decoration: line-through;
+}
+
+
+/* Org selection */
+
+.orgsWrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.orgWrapper {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    border-radius: 6px;
+    border: 1px solid #0004;
+    box-shadow: 0 6px 30px #0004;
+    /* background-color: #666; */
+    margin: 10px;
+}
+
+.orgWrapper:hover {
+    background: #f004;
+}
+
+.orgWrapper.selected {
+    background: #f004;
+    border-color: #000;
+}
+
+.orgsWrapper .orgWrapper p {
+    margin-right: 20px;
+    word-wrap: break-word;
+}
+
+.orgsWrapper .orgWrapper img {
+    margin: 20px;
+    border-radius: 6px;
+    width: 50px;
+}
