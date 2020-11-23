@@ -2,6 +2,19 @@ body {
     margin: 0px;
 }
 
+.icon.back {
+	font-size: 30px;
+	position: absolute;
+	top: 20px;
+	left: 20px;
+	z-index: 9999;
+	cursor: pointer
+}
+
+.icon.back:hover {
+	font-size: 35px;
+}
+
 /* LOGIN */
 
 .loginWrapper {
@@ -191,4 +204,116 @@ input.username {
     margin: 20px;
     border-radius: 6px;
     width: 50px;
+}
+
+/* Config */
+
+.configWrapper {
+	display: flex;
+	flex-direction: column;
+	width: 320px;
+	align-items: center;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+
+.configWrapper label {
+	width: 220px;
+	text-align: left;
+	margin: 10px;
+}
+
+.configWrapper input {
+	height: 30px;
+	width: 200px;
+	padding: 0 10px;
+	outline: none;
+	border-radius: 10px;
+	margin-bottom: 10px;
+}
+
+.configWrapper input.bad {
+	background-color: #f004;
+}
+
+.configWrapper input.ok {
+	background-color: #0f04;
+}
+
+.configWrapper button {
+	cursor: pointer;
+}
+
+/* Group Preview */
+
+.groupPreviewer {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	display: flex;
+	width: calc(100% - 40px);
+	/* margin: 0 20px; */
+	justify-content: space-between;
+}
+
+.groupPreviewer .group {
+	width: calc(50% - 20px);
+}
+
+.groupPreviewer .group .user {
+	min-width: calc(100% - 40px);
+	height: 100px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	border-radius: 6px;
+	border: 1px solid #0004;
+	margin-bottom: 10px;
+	padding: 20px;
+	box-shadow: 0 6px 30px #0004;
+	overflow: hidden;
+}
+
+.groupPreviewer .group h2 {
+	text-align: center;
+}
+
+.groupPreviewer .group .user img {
+	width: 50px;
+}
+
+.groupPreviewer .group .user p {
+	word-break: break-word;
+}
+
+.groupPreviewer .group a {
+	display: block;
+	text-align: center;
+}
+
+@media (min-width: 900px) {
+	.groupPreviewer {
+		display: flex;
+		width: calc(50% - 40px);
+		margin: 0 auto;
+		justify-content: space-between;
+	}
+
+	.groupPreviewer .group {
+		width: calc(50% - 100px);
+	}
+
+	.groupPreviewer .group .user {
+		min-width: calc(50% - 40px);
+		height: 60px;
+		margin-bottom: 20px;
+		flex-direction: row;
+	}
+
+	.groupPreviewer .group .user img {
+		margin-right: 20px;
+	}
 }

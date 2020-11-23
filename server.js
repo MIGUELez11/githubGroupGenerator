@@ -1,8 +1,8 @@
 const express = require("express");
 const fetch = require("node-fetch");
 const bodyParser = require("body-parser");
+const {/*execSync: */exec} = require("child_process");
 require("dotenv").config();
-
 
 const PORT = 8080;
 const server = express();
@@ -15,11 +15,13 @@ const GH_CLIENT_ID = process.env.GH_CLIENT_ID;
 const GH_REDIRECT_URI = "http://localhost:8080/OAuthCB"
 
 let GH_OAUTH_TOKEN;
-let org_selected;
+let org_selected = null;
+let selected_repo = null;
 
 // Functions
 
 function split_users(users) {
+	users = [...users];
     const length = users.length;
     users = users.sort(() => Math.random() - 0.5);
     const g1 = users.splice(0, Math.floor(length / 2));
@@ -27,46 +29,78 @@ function split_users(users) {
 }
 
 function addCollaborators(repoName, users) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
+		console.log(repoName, users);
         if (GH_OAUTH_TOKEN && repoName && users && users.length) {
             Promise.all(users.map(user => {
-                console.log(repoName, user);
                 return fetch(`https://api.github.com/repos/${repoName}/collaborators/${user}`, {
                     method: "PUT",
                     headers: {
                         Authorization: GH_OAUTH_TOKEN,
                         accept: "application/vnd.github.v3+json"
                     }
-                }).then(res => res.json()).then(d => console.log(d)).catch(console.log);
-            })).then(success => resolve("Users added")).catch(error => reject(error));
+                }).then(res => {
+					if (res.status === 404 || res.status === 403)
+						resolve(false);
+				}).catch(console.log);
+            })).then(() => resolve(true)).catch(() => {
+				resolve(false)
+			});
         }
         else
-            reject("no user or repo");
+			resolve(false);
     });
 }
 
-async function generateRepo(repoName) {
-    if (GH_OAUTH_TOKEN && org_selected) {
-        let url;
-        if (org_selected.type === "user")
-            url = "https://api.github.com/user/repos"
-        else
-            url = `https://api.github.com/orgs/${org_selected.login}/repos`;
-
-        try {
-
-            const res = await fetch(url, {
-                headers: {
+async function checkIfRepoExists(repoName) {
+	if (GH_OAUTH_TOKEN && org_selected) {
+		try {
+			let res = await fetch(`https://api.github.com/repos/${org_selected.login}/${repoName}`, {
+				headers: {
                     Authorization: GH_OAUTH_TOKEN,
                     "Content-Type": "application/json"
                 },
-                method: "POST",
-                body: JSON.stringify({
-                    name: repoName
-                })
-            });
-            const repos = await res.json();
-            return repos;
+                method: "GET",
+			});
+			const repo = await res.json();
+			console.log(repo);
+			if (repo.message)
+				return false
+			return true;
+		}
+		catch (e) {
+			return false;
+		}
+	}
+}
+
+generateRepo("testing");
+
+async function generateRepo(repoName) {
+
+	if (GH_OAUTH_TOKEN && org_selected) {
+		let url;
+        if (org_selected.type === "user")
+		url = "https://api.github.com/user/repos"
+        else
+		url = `https://api.github.com/orgs/${org_selected.login}/repos`;
+
+        try {
+			res = await fetch(url, {
+				headers: {
+					Authorization: GH_OAUTH_TOKEN,
+					"Content-Type": "application/json"
+				},
+				method: "POST",
+				body: JSON.stringify({
+					name: repoName
+				})
+			});
+			const repos = await res.json();
+			exec(`rm -rf ${repoName} && git clone ${repos.html_url} ${repoName}`);
+			exec(`cd ${repoName} && cp -a ../template/. . && git add -A && git checkout -b main && git commit -m "Added Subject" && git push origin main && cd .. && rm -rf ${repoName}`);
+			console.log(repos);
+			return repos;
         }
         catch (e) {
             console.log(e);
@@ -77,6 +111,59 @@ async function generateRepo(repoName) {
         return false;
 }
 
+function deleteRepo(repo) {
+	if (repo)
+		fetch(`https://api.github.com/repos/${repo}`, {
+			method: "DELETE",
+			headers: {
+				Authorization: GH_OAUTH_TOKEN
+			}
+		}).catch(console.log);
+}
+
+async function getUser(userName) {
+	if (userName)
+	{
+		const res = await fetch(`https://api.github.com/users/${userName}`)
+		if (res.status === 404)
+			return null;
+		const user = await res.json();
+		return {name: user.login, img: user.avatar_url}
+	}
+	return null;
+
+}
+
+async function generateRepoWithCollabs(repoName, collaborators) {
+	if (repoName && collaborators)
+	{
+		if (!await checkIfRepoExists(repoName))
+		{
+			const repo = await generateRepo(repoName);
+			if (repo)
+			{
+				const collabs = await addCollaborators(repo.full_name, collaborators);
+				if (collabs)
+				{
+					const users = [];
+					await Promise.all(collaborators.map(user => getUser(user).then((user) => users.push(user))));
+					return {url: repo.html_url, name: repo.full_name, users};
+				}
+				else
+					console.log("collabs failed");
+				deleteRepo(repo.full_name);
+			}
+			else
+				console.log("Repo error")
+		}
+		else
+			console.log("Repo exists");
+	}
+	else
+		console.log("No reponame or collabs")
+	return null;
+}
+
 // User management
 
 server.get("/checkLogin", (req, res) => {
@@ -84,7 +171,7 @@ server.get("/checkLogin", (req, res) => {
 });
 
 server.get("/login", (req, res) => {
-    res.redirect(`https://github.com/login/oauth/authorize?client_id=${GH_CLIENT_ID}&redirect_uri=${GH_REDIRECT_URI}&scope=user,admin:org,repo,repo:invite,`)
+    res.redirect(`https://github.com/login/oauth/authorize?client_id=${GH_CLIENT_ID}&redirect_uri=${GH_REDIRECT_URI}&scope=user,admin:org,repo,repo:invite,delete_repo,`)
     // console.log(GH_SECRET);
     // res.send("hello world")
 });
@@ -92,7 +179,6 @@ server.get("/login", (req, res) => {
 server.get("/OAuthCB", (req, res) => {
     const code = req.query.code;
     if (code) {
-        console.log(code);
         fetch("https://github.com/login/oauth/access_token", {
             method: "POST",
             headers: {
@@ -109,7 +195,6 @@ server.get("/OAuthCB", (req, res) => {
                 res.send(data);
             }
             else {
-                console.log(data);
                 let token = `${data.token_type} ${data.access_token}`;
                 GH_OAUTH_TOKEN = token;
                 res.redirect("/menu");
@@ -125,29 +210,52 @@ server.get("/OAuthCB", (req, res) => {
 
 server.post("/generateGroups", async (req, res) => {
     const { usernames } = req.body;
-    console.log(usernames);
-    if (usernames && usernames.length) {
-        const groups = split_users(usernames);
-        let repo1 = await generateRepo("test");
-        let repo2 = await generateRepo("test2");
-        const { svn_url: url1, full_name: name1 } = repo1;
-        const { svn_url: url2, full_name: name2 } = repo2;
-        addCollaborators(name1, groups[0]);
-        addCollaborators(name2, groups[1]);
-        res.send({
-            groups, org_selected, repos: [{
-                url: url1,
-                name: name1
-            }, {
-                url: url2,
-                name: name2
-            }]
-        });
+    if (usernames && usernames.length && GH_OAUTH_TOKEN && selected_repo && org_selected) {
+		const groups = split_users(usernames);
+		let repos1 = generateRepoWithCollabs(`${selected_repo.promotion}-${selected_repo.g1}`, groups[0]);
+		let repos2 = generateRepoWithCollabs(`${selected_repo.promotion}-${selected_repo.g2}`, groups[1]);
+		await Promise.all([repos1, repos2]);
+		let repos = [await repos1, await repos2];
+		if (!repos[0] && repos[1])
+		{
+			repos = null;
+			deleteRepo(repos[1].name);
+		}
+		if (repos[0] && !repos[1])
+		{
+			repos = null;
+			deleteRepo(repos[0].name);
+		}
+		res.send([
+            ...repos
+        ]);
     }
     else {
-        server.send({ msg: "No users provided" });
+        res.send({ msg: "No users provided" });
     }
 });
+
+server.get("/checkIfRepoExists/:repoName", async (req, res) => {
+	if (org_selected)
+	{
+		console.log(`${org_selected.login}/${req.params.repoName}`)
+		res.send({exists: org_selected ? await checkIfRepoExists(req.params.repoName) : false});
+	}
+	else {
+		res.send({exists: false});
+	}
+});
+
+server.get("/selectedRepo", (req, res) => {
+	res.send(selected_repo ? selected_repo : {});
+})
+
+server.put("/selectedRepo", (req, res) => {
+	const {g1, g2, promotion} = req.body;
+	if (g1 && g2)
+		selected_repo = {g1, g2, promotion};
+	res.send({});
+})
 
 // Org picker
 
@@ -199,7 +307,6 @@ server.get("/getUsers/:userName", (req, res) => {
         if (d && d.items && d.items.length) {
 
             let users = d.items.map(user => user.login);
-            console.log("users=", users);
             res.send(users);
         }
         else
