@@ -68,8 +68,8 @@ function showMenu() {
         className: "configSelection", innerText: "Configuration", f: (e) => {
             e.preventDefault();
             pushState("Configuration", "/config");
-		}
-	}];
+        }
+    }];
     buttons.map(button => {
         const btn = createElement("div", { className: "btn " + button.className, parent: menuWrapper });
         createElement("p", { innerText: button.innerText, parent: btn });
@@ -88,24 +88,22 @@ function showGroupsMenu() {
     let datalist = createElement("datalist", { id: "userList", parent: usernameWrapper });
     let eventListenerHold;
     input.addEventListener("keyup", (e) => {
-		if (e.key)
-		{
-			if (eventListenerHold)
-				clearTimeout(eventListenerHold);
-			eventListenerHold = setTimeout(() => {
-				console.log("Asked");
-				fetch(`http://localhost:8080/getUsers/${input.value}`).then(res => res.json()).then(users => {
-					if (users && users.length) {
-						if (datalist)
-							datalist.remove();
-						datalist = createElement("datalist", { id: "userList", parent: usernameWrapper });
-						users.map(user => {
-							createElement("option", { value: user, innerText: user, parent: datalist });
-						})
-					}
-				})
-			}, 500);
-		}
+        if (e.key) {
+            if (eventListenerHold)
+                clearTimeout(eventListenerHold);
+            eventListenerHold = setTimeout(() => {
+                fetch(`http://localhost:8080/getUsers/${input.value}`).then(res => res.json()).then(users => {
+                    if (users && users.length) {
+                        if (datalist)
+                            datalist.remove();
+                        datalist = createElement("datalist", { id: "userList", parent: usernameWrapper });
+                        users.map(user => {
+                            createElement("option", { value: user, innerText: user, parent: datalist });
+                        })
+                    }
+                })
+            }, 500);
+        }
     })
 
     const saveBtn = createElement("div", { className: "icon save", parent: usernameWrapper });
@@ -190,80 +188,75 @@ function showOrgMenu() {
 }
 
 function showConfig() {
-	const configWrapper = createElement("div", {className: "configWrapper", parent: document.querySelector("body")});
-	createElement("label", {innerText: "Añade prefijo de promoción", parent: configWrapper})
-	const promotion = createElement("input", {value: "ft-nov20-Backend-movieProject", parent: configWrapper});
+    const configWrapper = createElement("div", { className: "configWrapper", parent: document.querySelector("body") });
+    createElement("label", { innerText: "Añade prefijo de promoción", parent: configWrapper })
+    const promotion = createElement("input", { value: "ft-nov20-Backend-movieProject", parent: configWrapper });
 
-	createElement("label", {innerText: "Nombre del grupo1", parent: configWrapper})
-	const g1 = createElement("input", {value: "Group1", parent: configWrapper});
+    createElement("label", { innerText: "Nombre del grupo1", parent: configWrapper })
+    const g1 = createElement("input", { value: "Group1", parent: configWrapper });
 
-	createElement("label", {innerText: "Nombre del grupo 2", parent: configWrapper})
-	const g2 = createElement("input", {value: "Group2", parent: configWrapper});
+    createElement("label", { innerText: "Nombre del grupo 2", parent: configWrapper })
+    const g2 = createElement("input", { value: "Group2", parent: configWrapper });
 
-	const btn = createElement("button", {innerText: "Guardar", parent: configWrapper});
+    const btn = createElement("button", { innerText: "Guardar", parent: configWrapper });
 
-	const checkRepoName = (repoName, input) => {
-		fetch(`http://localhost:8080/checkIfRepoExists/${repoName}`).then(res => res.json()).then(data => {
-			if (data.exists)
-			{
-				input.className = "bad";
-			}
-			else
-			{
-				input.className = "ok";
-			}
+    const checkRepoName = (repoName, input) => {
+        fetch(`http://localhost:8080/checkIfRepoExists/${repoName}`).then(res => res.json()).then(data => {
+            if (data.exists) {
+                input.className = "bad";
+            }
+            else {
+                input.className = "ok";
+            }
 
-		})
-	}
+        })
+    }
 
-	fetch("http://localhost:8080/selectedRepo").then(res => res.json()).then(data => {
-		if (data.promotion)
-		{
-			promotion.value = data.promotion;
-			g1.value = data.g1;
-			g2.value = data.g2;
-		}
-		checkRepoName(`${promotion.value}-${g1.value}`, g1)
-		checkRepoName(`${promotion.value}-${g2.value}`, g2)
-	});
-	g1.addEventListener("keyup", () => checkRepoName(`${promotion.value}-${g1.value}`, g1));
-	g2.addEventListener("keyup", () => checkRepoName(`${promotion.value}-${g2.value}`, g2));
-	btn.addEventListener("click", () => {
-		fetch("http://localhost:8080/selectedRepo", {
-			method: "PUT",
-			headers: {
-				"Content-Type": "application/json"
-			},
-			body: JSON.stringify({g1: g1.value, g2: g2.value, promotion: promotion.value})
-		});
-	})
+    fetch("http://localhost:8080/selectedRepo").then(res => res.json()).then(data => {
+        if (data.promotion) {
+            promotion.value = data.promotion;
+            g1.value = data.g1;
+            g2.value = data.g2;
+        }
+        checkRepoName(`${promotion.value}-${g1.value}`, g1)
+        checkRepoName(`${promotion.value}-${g2.value}`, g2)
+    });
+    g1.addEventListener("keyup", () => checkRepoName(`${promotion.value}-${g1.value}`, g1));
+    g2.addEventListener("keyup", () => checkRepoName(`${promotion.value}-${g2.value}`, g2));
+    btn.addEventListener("click", () => {
+        fetch("http://localhost:8080/selectedRepo", {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ g1: g1.value, g2: g2.value, promotion: promotion.value })
+        });
+    })
 }
 
 function showTeams(repos) {
-	console.log(repos);
-	if (!repos.msg && repos[0]) {
-		let first = document.querySelector("body > div");
-		if (first)
-			first.remove();
-		const groupPreviewer = createElement("div", {className: "groupPreviewer", parent: document.querySelector("body")});
-		repos.map(group => {
-			const container = createElement("div", {className: "group", parent: groupPreviewer});
-			const pos = group.name.length - group.name.split("").reverse().join("").indexOf("-");
-			const name = group.name.substr(pos, group.name.length);
-			createElement("h2", {innerText: name, parent: container});
-			console.log(group);
-			group.users.map(user => {
-				const userW = createElement("div", {className: "user", parent: container});
-				createElement("img", {src: user.img, parent: userW});
-				createElement("p", {innerText: user.name, parent: userW});
-			});
-			createElement("a", {innerText: name, href: group.url, target: "_blank", parent: container});
-		})
-	}
-	else {
-		console.log("redirect");
-		pushState("Menu", "/menu");
-	}
+    console.log(repos);
+    if (!repos.msg && repos[0]) {
+        let first = document.querySelector("body > div");
+        if (first)
+            first.remove();
+        const groupPreviewer = createElement("div", { className: "groupPreviewer", parent: document.querySelector("body") });
+        repos.map(group => {
+            const container = createElement("div", { className: "group", parent: groupPreviewer });
+            const pos = group.name.length - group.name.split("").reverse().join("").indexOf("-");
+            const name = group.name.substr(pos, group.name.length);
+            createElement("h2", { innerText: name, parent: container });
+            group.users.map(user => {
+                const userW = createElement("div", { className: "user", parent: container });
+                createElement("img", { src: user.img, parent: userW });
+                createElement("p", { innerText: user.name, parent: userW });
+            });
+            createElement("a", { innerText: name, href: group.url, target: "_blank", parent: container });
+        })
+    }
+    else {
+        pushState("Menu", "/menu");
+    }
 }
 
 function getParams() {
@@ -278,22 +271,22 @@ function getParams() {
 }
 
 function draw_back_arrow() {
-	const backContainer = createElement("span", {className: "icon back", parent: document.querySelector("body")});
-	createElement("i", {className: "fas fa-arrow-left", parent: backContainer});
+    const backContainer = createElement("span", { className: "icon back", parent: document.querySelector("body") });
+    createElement("i", { className: "fas fa-arrow-left", parent: backContainer });
 
-	backContainer.addEventListener("click", () => {
-		window.history.back();
-	})
+    backContainer.addEventListener("click", () => {
+        window.history.back();
+    })
 }
 
 function router() {
     const path = window.location.pathname;
 
-	let firstChild = document.querySelector("body > div")
-	if (firstChild)
-		firstChild.remove();
-	if (path !== "/" && path !== "/menu")
-		draw_back_arrow();
+    let firstChild = document.querySelector("body > div")
+    if (firstChild)
+        firstChild.remove();
+    if (path !== "/" && path !== "/menu")
+        draw_back_arrow();
     switch (path) {
         case "/menu":
             showMenu();
@@ -303,14 +296,14 @@ function router() {
             break;
         case "/org":
             showOrgMenu();
-			break;
-		case "/config":
-			showConfig();
-			break;
+            break;
+        case "/config":
+            showConfig();
+            break;
         default:
             window.history.replaceState({}, "Title | The Bridge", "/");
             showLoginPage();
-			break
+            break
     }
 }
 
